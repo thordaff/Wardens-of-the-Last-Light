@@ -11,12 +11,16 @@ Dibuat dengan **Godot 4.5**, renderer **Forward+**.
 
 ## Kota graybox (field)
 
-`scenes/world/town_graybox.tscn`: kota kecil dari blok CSG untuk menguji tampilan HD-2D.
+`scenes/world/town_graybox.tscn`: kota kecil bergaya Eropa "mewah & historis" (art-direction.md §7b), masih dari blok CSG dengan palet §7b sampai kit half-timber dari tim art siap. Scene ini dibuat oleh `tools/gen_town_graybox.py` (jalankan ulang hanya bila ingin kembali ke tata letak generator; editan manual di Godot akan tertimpa).
 
-- Kamera tetap (FOV 32°, pitch −28°, jarak 11 m) mengikuti pemain dengan halus, DoF tilt-shift (`scripts/world/field_camera.gd`).
+- 4 ketinggian: jalan bawah & pasar (0 m), alun-alun dengan air mancur (1.5 m), teras kapel (3 m), belvedere (4.5 m), dihubungkan tangga lebar berpagar. Dinding penahan dan balustrade dengan baluster.
+- 12 rumah half-timber 2–3 lantai: fondasi batu pasir, lantai atas menjorok, balok kayu, atap slate teal curam 50°, dormer, cerobong, jendela berbunga dengan kusen hijau/biru/merah, spanduk atau papan toko, lentera dinding. Kapel bermenara di teras.
+- Set dressing acak (seed tetap): tong, peti, pot bunga, pohon, karung, keranjang buah, minimal 1 per sel 4×4 m yang bisa dimasuki; kios pasar berkanopi.
+- Kamera tetap (FOV 32°, pitch −28°, jarak 11 m), DoF near blur s/d 4 m dan far blur mulai 14 m, dengan occluder foreground (pohon, balustrade, ujung atap) yang menempel di kamera dan selalu blur (`scripts/world/field_camera.gd`).
+- Grading hangat sepia (color correction: bayangan coklat, sorotan keemasan), vignette 0.35 (`shaders/vignette.gdshader`), debu cahaya (GPUParticles3D), kabut krem.
 - `TimeOfDay` menerapkan preset `data/time_of_day/` ke cahaya utama dan Environment sesuai `GameClock`, dengan blend 1 jam antar fase. Cahaya datang dari arah Ashspire (`ashspire_yaw_deg`), lentera (group `lanterns`) berdenyut ±10%, jendela (group `lit_windows`) menyala sesuai fase.
-- Pemain: `AnimatedSprite3D` billboard Y dengan sheet jalan Aldric (4 frame per arah, kanan = cermin kiri). Keyboard dan gamepad.
-- Rumput hijau di timur kota = `EncounterZone`: berjalan di dalamnya bisa memicu battle acak. Setelah battle, pemain kembali ke posisi semula.
+- Pemain: `AnimatedSprite3D` billboard Y dengan sheet jalan Aldric (4 frame per arah). Keyboard dan gamepad.
+- Rumput di luar gerbang timur = `EncounterZone`: berjalan di dalamnya bisa memicu battle acak. Setelah battle, pemain kembali ke posisi semula.
 
 ## Encounter per fase (Napas Suar)
 
