@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/character_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/skill_data.gd" id="2_skill"]
+[ext_resource type="Resource" path="res://data/skills/bara_suci.tres" id="s0"]
+[ext_resource type="Resource" path="res://data/skills/sinar_kuil.tres" id="s1"]
+[ext_resource type="Resource" path="res://data/skills/doa_cahaya.tres" id="s2"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"seren"
+display_name = "Seren"
+max_hp = 380
+max_sp = 96
+phys_atk = 24
+phys_def = 28
+elem_atk = 46
+elem_def = 44
+speed = 44
+weapons = Array[int]([5])
+placeholder_color = Color(0.9098, 0.6588, 0.3529, 1)
+skills = Array[ExtResource("2_skill")]([ExtResource("s0"), ExtResource("s1"), ExtResource("s2")])

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EncounterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/encounter_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="2_enemy"]
+[ext_resource type="Resource" path="res://data/enemies/kelelawar_abu.tres" id="e_kelelawar_abu"]
+[ext_resource type="Resource" path="res://data/enemies/serigala_pudar.tres" id="e_serigala_pudar"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"rute_serigala"
+display_name = "Rute: Serigala"
+enemies = Array[ExtResource("2_enemy")]([ExtResource("e_serigala_pudar"), ExtResource("e_serigala_pudar"), ExtResource("e_kelelawar_abu")])
+is_boss = false

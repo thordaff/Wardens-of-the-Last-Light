@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/skill_data.gd" id="2_skill"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"hampa"
+display_name = "Hampa"
+max_hp = 520
+shield = 4
+phys_atk = 42
+phys_def = 26
+elem_atk = 30
+elem_def = 20
+speed = 36
+weaknesses = Array[int]([5, 10, 3])
+large = false
+placeholder_color = Color(0.6039, 0.6039, 0.6275, 1)
+skills = Array[ExtResource("2_skill")]([])

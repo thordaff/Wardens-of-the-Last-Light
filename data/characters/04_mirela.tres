@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/character_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/skill_data.gd" id="2_skill"]
+[ext_resource type="Resource" path="res://data/skills/pecahan_es.tres" id="s0"]
+[ext_resource type="Resource" path="res://data/skills/rantai_petir.tres" id="s1"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"mirela"
+display_name = "Mirela"
+max_hp = 430
+max_sp = 110
+phys_atk = 22
+phys_def = 26
+elem_atk = 54
+elem_def = 40
+speed = 46
+weapons = Array[int]([5])
+placeholder_color = Color(0.498, 0.7216, 0.8471, 1)
+skills = Array[ExtResource("2_skill")]([ExtResource("s0"), ExtResource("s1")])

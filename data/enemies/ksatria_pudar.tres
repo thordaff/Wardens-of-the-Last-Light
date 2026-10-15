@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/skill_data.gd" id="2_skill"]
+[ext_resource type="Resource" path="res://data/skills/sapuan_pudar.tres" id="s0"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"ksatria_pudar"
+display_name = "Ksatria Pudar"
+max_hp = 2400
+shield = 6
+phys_atk = 58
+phys_def = 34
+elem_atk = 40
+elem_def = 30
+speed = 45
+weaknesses = Array[int]([1, 2, 7, 10])
+large = true
+placeholder_color = Color(0.2431, 0.2275, 0.3608, 1)
+skills = Array[ExtResource("2_skill")]([ExtResource("s0")])

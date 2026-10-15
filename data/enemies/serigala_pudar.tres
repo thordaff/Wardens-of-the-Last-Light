@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/skill_data.gd" id="2_skill"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"serigala_pudar"
+display_name = "Serigala Pudar"
+max_hp = 380
+shield = 3
+phys_atk = 38
+phys_def = 18
+elem_atk = 20
+elem_def = 16
+speed = 50
+weaknesses = Array[int]([0, 6, 4])
+large = false
+placeholder_color = Color(0.549, 0.5255, 0.6588, 1)
+skills = Array[ExtResource("2_skill")]([])

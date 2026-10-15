@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/skill_data.gd" id="2_skill"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"kelelawar_abu"
+display_name = "Kelelawar Abu"
+max_hp = 260
+shield = 2
+phys_atk = 32
+phys_def = 14
+elem_atk = 20
+elem_def = 14
+speed = 64
+weaknesses = Array[int]([4, 9, 8])
+large = false
+placeholder_color = Color(0.3686, 0.3294, 0.4078, 1)
+skills = Array[ExtResource("2_skill")]([])
