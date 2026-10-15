@@ -1,8 +1,12 @@
 name: Godot CI
 on:
   pull_request:
+    # labeled: label "qa-lolos" dari QA memicu auto-merge.
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   push:
     branches: [main]
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -27,3 +31,25 @@ jobs:
         run: ./godot --headless --quit-after 120 2>&1 | tee run.log; ! grep -E "SCRIPT ERROR|ERROR:" run.log
       - name: Jalankan scene battle 300 frame
         run: ./godot --headless --quit-after 300 res://scenes/battle/battle.tscn 2>&1 | tee battle.log; ! grep -E "SCRIPT ERROR|ERROR:" battle.log
+
+  # Auto-merge ke main bila CI hijau, PR bukan draft, dan QA sudah memberi label
+  # "qa-lolos". Merge commit (bukan squash) supaya PR bertumpuk tetap bersih.
+  auto-merge:
+    needs: check
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.base.ref == 'main' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'qa-lolos')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Merge ke main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --merge --match-head-commit "$SHA"
