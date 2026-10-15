@@ -118,3 +118,21 @@ func swap_with_reserve(active_slot: int, reserve_slot: int) -> bool:
 	slot_swapped.emit(active_slot, reserve_slot, _active[active_slot], tmp)
 	roster_changed.emit()
 	return true
+
+
+func clear() -> void:
+	for i in ACTIVE_SLOTS:
+		_active[i] = null
+		_reserve[i] = null
+	roster_changed.emit()
+
+
+## Roster awal prototipe: file data/characters/ urut nama = aktif 1-4 lalu cadangan.
+func load_default_roster(dir: String = "res://data/characters/") -> void:
+	clear()
+	var files := Array(DirAccess.get_files_at(dir))
+	files.sort()
+	for f in files:
+		var file: String = f.trim_suffix(".remap")
+		if file.ends_with(".tres"):
+			add_member(load(dir.path_join(file)))
