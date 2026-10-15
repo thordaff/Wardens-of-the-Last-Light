@@ -27,9 +27,14 @@ jobs:
           ./godot --headless -s res://tests/test_battle.gd
           ./godot --headless -s res://tests/test_town.gd
           ./godot --headless -s res://tests/test_encounters.gd
-      - name: Jalankan main scene 120 frame
+          ./godot --headless -s res://tests/test_settings.gd
+      - name: Jalankan title screen (main scene) 120 frame
         run: ./godot --headless --quit-after 120 2>&1 | tee run.log; ! grep -E "SCRIPT ERROR|ERROR:" run.log
       - name: Jalankan scene battle 300 frame
         run: ./godot --headless --quit-after 300 res://scenes/battle/battle.tscn 2>&1 | tee battle.log; ! grep -E "SCRIPT ERROR|ERROR:" battle.log
       - name: Jalankan kota graybox 300 frame
         run: ./godot --headless --quit-after 300 res://scenes/world/town_graybox.tscn 2>&1 | tee town.log; ! grep -E "SCRIPT ERROR|ERROR:" town.log
+      - name: Jalankan scene debug 120 frame
+        run: ./godot --headless --quit-after 120 res://scenes/main.tscn 2>&1 | tee debug.log; ! grep -E "SCRIPT ERROR|ERROR:" debug.log
+      - name: Jalankan game over 60 frame
+        run: ./godot --headless --quit-after 60 res://scenes/ui/game_over.tscn 2>&1 | tee gameover.log; ! grep -E "SCRIPT ERROR|ERROR:" gameover.log

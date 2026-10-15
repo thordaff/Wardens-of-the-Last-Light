@@ -2,7 +2,6 @@ extends Node3D
 ## Scene kota graybox: menghubungkan pemain, kamera, zona encounter, dan battle.
 
 const BATTLE_SCENE := "res://scenes/battle/battle.tscn"
-const MAIN_SCENE := "res://scenes/main.tscn"
 
 ## Posisi pemain disimpan saat masuk battle supaya kembali ke tempat yang sama.
 static var _return_position: Variant = null
@@ -11,6 +10,8 @@ static var _return_position: Variant = null
 
 
 func _ready() -> void:
+	# Esc / Start membuka menu pause (autoload PauseMenu).
+	add_to_group(&"pausable")
 	if _return_position != null:
 		_player.global_position = _return_position
 		_return_position = null
@@ -22,8 +23,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key != null and key.pressed and not key.echo and key.keycode == KEY_T:
 		GameClock.set_hour(GameClock.hour + 3.0)
-	elif event.is_action_pressed(&"ui_cancel"):
-		get_tree().change_scene_to_file(MAIN_SCENE)
 
 
 func _on_encounter(encounter: EncounterData) -> void:

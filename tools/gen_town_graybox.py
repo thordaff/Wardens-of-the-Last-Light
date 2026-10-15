@@ -692,7 +692,7 @@ node(
         "offset_bottom": 40.0,
         "theme_override_font_sizes/font_size": 8,
         "text": '"Kota graybox  |  WASD / stik: jalan  |  gerbang timur: rumput encounter'
-        '\\nT: jam +3  |  Esc: kembali"',
+        '\\nT: jam +3  |  Esc / Start: jeda"',
     },
 )
 
