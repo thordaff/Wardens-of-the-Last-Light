@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EncounterData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/encounter_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="2_enemy"]
+[ext_resource type="Resource" path="res://data/enemies/kelelawar_abu.tres" id="e_kelelawar_abu"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"siang_ringan"
+display_name = "Siang: Kelelawar"
+enemies = Array[ExtResource("2_enemy")]([ExtResource("e_kelelawar_abu"), ExtResource("e_kelelawar_abu")])
+is_boss = false
+stat_scale = 0.9

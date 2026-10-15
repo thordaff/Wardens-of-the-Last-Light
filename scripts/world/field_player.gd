@@ -17,7 +17,7 @@ const DIRECTIONS: Array[StringName] = [&"down", &"up", &"left", &"right"]
 @export var row_down: int = 0
 @export var row_up: int = 1
 @export var row_left: int = 2
-@export var row_right: int = -1
+@export var row_right: int = 3
 
 var input_enabled := true
 var _facing: StringName = &"down"

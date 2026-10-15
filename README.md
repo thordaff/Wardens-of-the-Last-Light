@@ -18,6 +18,20 @@ Dibuat dengan **Godot 4.5**, renderer **Forward+**.
 - Pemain: `AnimatedSprite3D` billboard Y dengan sheet jalan Aldric (4 frame per arah, kanan = cermin kiri). Keyboard dan gamepad.
 - Rumput hijau di timur kota = `EncounterZone`: berjalan di dalamnya bisa memicu battle acak. Setelah battle, pemain kembali ke posisi semula.
 
+## Encounter per fase (Napas Suar)
+
+Pudar mengikuti jam: `data/encounter_tables/kota_awal.tres` (`EncounterTable`) berisi satu `PhaseEncounterSet` per fase.
+
+| Fase | Laju | Formasi | Langka | Kabut |
+|---|---|---|---|---|
+| Pagi | ×0.8 | serigala, kelelawar | – | ×1.0 |
+| Siang | ×0.5 | kelelawar lemah (stat ×0.9) | – | ×0.6 |
+| Sore | ×1.0 | serigala, 5 musuh | – | ×1.2 |
+| Malam | ×1.6 | Hampa ×1.3, kawanan ×1.25, 5 musuh | Bayang Suar 10% | ×1.5 |
+
+- `EncounterZone.table` memakai laju dan formasi fase saat ini; `EncounterData.stat_scale` membuat varian kuat (HP dan atk/def, speed dan shield tetap).
+- `TimeOfDay.pudar_table` mengalikan kepadatan kabut volumetrik dengan `fog_density_scale` fase yang sama (ikut blend antar fase).
+
 ## Prototipe battle
 
 Logika battle ada di `scripts/battle/battle_system.gd` dan tidak bergantung pada tampilan; `scenes/battle/battle.tscn` hanya menampilkannya dengan sprite placeholder berwarna.
@@ -38,6 +52,7 @@ godot --headless --import
 godot --headless -s res://tests/smoke_test.gd
 godot --headless -s res://tests/test_battle.gd
 godot --headless -s res://tests/test_town.gd
+godot --headless -s res://tests/test_encounters.gd
 ```
 
 CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedua tes, dan scene utama + battle secara headless di setiap PR.
