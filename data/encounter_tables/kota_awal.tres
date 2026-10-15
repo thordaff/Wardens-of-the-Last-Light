@@ -1,0 +1,102 @@
+[gd_resource type="Resource" script_class="EncounterTable" load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/encounter_table.gd" id="1_table"]
+[ext_resource type="Script" path="res://scripts/battle/phase_encounter_set.gd" id="2_set"]
+[ext_resource type="Script" path="res://scripts/battle/encounter_entry.gd" id="3_entry"]
+[ext_resource type="Resource" path="res://data/encounters/01_rute_serigala.tres" id="enc_rute"]
+[ext_resource type="Resource" path="res://data/encounters/02_lima_musuh.tres" id="enc_lima"]
+[ext_resource type="Resource" path="res://data/encounters/04_siang_ringan.tres" id="enc_ringan"]
+[ext_resource type="Resource" path="res://data/encounters/05_malam_hampa.tres" id="enc_hampa"]
+[ext_resource type="Resource" path="res://data/encounters/06_malam_kawanan.tres" id="enc_kawanan"]
+[ext_resource type="Resource" path="res://data/encounters/07_langka_bayang_suar.tres" id="enc_bayang"]
+
+[sub_resource type="Resource" id="Entry_1"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_rute")
+weight = 3
+
+[sub_resource type="Resource" id="Entry_2"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_ringan")
+weight = 2
+
+[sub_resource type="Resource" id="Set_0"]
+script = ExtResource("2_set")
+phase = 0
+rate_multiplier = 0.8
+common = Array[ExtResource("3_entry")]([SubResource("Entry_1"), SubResource("Entry_2")])
+rare = Array[ExtResource("3_entry")]([])
+rare_chance = 0.0
+fog_density_scale = 1.0
+
+[sub_resource type="Resource" id="Entry_3"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_ringan")
+weight = 3
+
+[sub_resource type="Resource" id="Entry_4"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_rute")
+weight = 1
+
+[sub_resource type="Resource" id="Set_1"]
+script = ExtResource("2_set")
+phase = 1
+rate_multiplier = 0.5
+common = Array[ExtResource("3_entry")]([SubResource("Entry_3"), SubResource("Entry_4")])
+rare = Array[ExtResource("3_entry")]([])
+rare_chance = 0.0
+fog_density_scale = 0.6
+
+[sub_resource type="Resource" id="Entry_5"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_rute")
+weight = 2
+
+[sub_resource type="Resource" id="Entry_6"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_lima")
+weight = 2
+
+[sub_resource type="Resource" id="Set_2"]
+script = ExtResource("2_set")
+phase = 2
+rate_multiplier = 1.0
+common = Array[ExtResource("3_entry")]([SubResource("Entry_5"), SubResource("Entry_6")])
+rare = Array[ExtResource("3_entry")]([])
+rare_chance = 0.0
+fog_density_scale = 1.2
+
+[sub_resource type="Resource" id="Entry_7"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_hampa")
+weight = 2
+
+[sub_resource type="Resource" id="Entry_8"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_kawanan")
+weight = 2
+
+[sub_resource type="Resource" id="Entry_9"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_lima")
+weight = 1
+
+[sub_resource type="Resource" id="Entry_10"]
+script = ExtResource("3_entry")
+encounter = ExtResource("enc_bayang")
+weight = 1
+
+[sub_resource type="Resource" id="Set_3"]
+script = ExtResource("2_set")
+phase = 3
+rate_multiplier = 1.6
+common = Array[ExtResource("3_entry")]([SubResource("Entry_7"), SubResource("Entry_8"), SubResource("Entry_9")])
+rare = Array[ExtResource("3_entry")]([SubResource("Entry_10")])
+rare_chance = 0.1
+fog_density_scale = 1.5
+
+[resource]
+script = ExtResource("1_table")
+id = &"kota_awal"
+sets = Array[ExtResource("2_set")]([SubResource("Set_0"), SubResource("Set_1"), SubResource("Set_2"), SubResource("Set_3")])

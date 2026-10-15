@@ -52,17 +52,18 @@ static func from_character(data: CharacterData, slot_index: int, reserve: bool) 
 	return b
 
 
-static func from_enemy(data: EnemyData, index: int) -> Battler:
+## `stat_scale` menguatkan HP dan atk/def (speed dan shield tetap).
+static func from_enemy(data: EnemyData, index: int, stat_scale: float = 1.0) -> Battler:
 	var b := Battler.new()
 	b.enemy = data
 	b.is_enemy = true
 	b.display_name = data.display_name
-	b.max_hp = data.max_hp
-	b.hp = data.max_hp
-	b.phys_atk = data.phys_atk
-	b.phys_def = data.phys_def
-	b.elem_atk = data.elem_atk
-	b.elem_def = data.elem_def
+	b.max_hp = roundi(data.max_hp * stat_scale)
+	b.hp = b.max_hp
+	b.phys_atk = roundi(data.phys_atk * stat_scale)
+	b.phys_def = roundi(data.phys_def * stat_scale)
+	b.elem_atk = roundi(data.elem_atk * stat_scale)
+	b.elem_def = roundi(data.elem_def * stat_scale)
 	b.speed = data.speed
 	b.max_shield = data.shield
 	b.shield = data.shield

@@ -12,6 +12,8 @@ extends Node
 @export_range(-180.0, 180.0) var ashspire_yaw_deg: float = 30.0
 ## Region jauh (Saruna, Ranggawa) mendapat cahaya utama lebih redup.
 @export_range(0.0, 2.0) var sun_energy_scale: float = 1.0
+## Tabel encounter area ini: kepadatan Pudar (kabut) ikut fase yang sama.
+@export var pudar_table: EncounterTable
 ## Update cukup tiap 0.1 detik, bukan tiap frame.
 @export var update_interval: float = 0.1
 
@@ -47,7 +49,12 @@ func apply_now() -> void:
 		var env := world_environment.environment
 		env.ambient_light_color = a.ambient_color.lerp(b.ambient_color, t)
 		env.ambient_light_energy = lerpf(a.ambient_energy, b.ambient_energy, t)
-		env.volumetric_fog_density = lerpf(a.fog_density, b.fog_density, t)
+		var fog := lerpf(a.fog_density, b.fog_density, t)
+		if pudar_table != null:
+			fog *= lerpf(
+				pudar_table.fog_density_scale(a.phase), pudar_table.fog_density_scale(b.phase), t
+			)
+		env.volumetric_fog_density = fog
 		env.volumetric_fog_albedo = a.fog_albedo.lerp(b.fog_albedo, t)
 		env.glow_intensity = lerpf(a.glow_intensity, b.glow_intensity, t)
 		env.adjustment_saturation = lerpf(a.saturation, b.saturation, t)

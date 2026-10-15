@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/town.gd" id="1_town"]
 [ext_resource type="Script" path="res://scripts/world/time_of_day.gd" id="2_tod"]
@@ -14,6 +14,7 @@
 [ext_resource type="Resource" path="res://data/encounters/01_rute_serigala.tres" id="e1"]
 [ext_resource type="Resource" path="res://data/encounters/02_lima_musuh.tres" id="e2"]
 [ext_resource type="Script" path="res://scripts/battle/encounter_data.gd" id="8_enc"]
+[ext_resource type="Resource" path="res://data/encounter_tables/kota_awal.tres" id="9_table"]
 
 [sub_resource type="Environment" id="Environment_town"]
 background_mode = 1
@@ -88,6 +89,7 @@ sun = NodePath("../Sun")
 world_environment = NodePath("../WorldEnvironment")
 presets = Array[ExtResource("7_preset")]([ExtResource("p0"), ExtResource("p1"), ExtResource("p2"), ExtResource("p3")])
 ashspire_yaw_deg = 30.0
+pudar_table = ExtResource("9_table")
 
 [node name="Ground" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, -0, 1, 0, -0.5, 0)
@@ -457,6 +459,7 @@ material = SubResource("Mat_grass")
 [node name="EncounterZone" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, -0, 1, 14, 1, 6)
 script = ExtResource("5_zone")
+table = ExtResource("9_table")
 encounters = Array[ExtResource("8_enc")]([ExtResource("e1"), ExtResource("e2")])
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="EncounterZone"]

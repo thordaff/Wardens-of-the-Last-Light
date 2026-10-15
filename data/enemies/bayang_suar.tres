@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/battle/skill_data.gd" id="2_skill"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"bayang_suar"
+display_name = "Bayang Suar"
+max_hp = 900
+shield = 5
+phys_atk = 46
+phys_def = 22
+elem_atk = 50
+elem_def = 28
+speed = 70
+weaknesses = Array[int]([10, 6, 1])
+large = false
+placeholder_color = Color(0.85, 0.75, 0.4, 1)
+skills = Array[ExtResource("2_skill")]([])
