@@ -140,6 +140,24 @@ func _test_swap_rules() -> void:
 	_check(s.swap(slot), "switch slot pelaku")
 	_check(s.current == incoming, "cadangan langsung mengambil giliran")
 	_check(not s.swap(slot), "switch slot sama ditolak di ronde yang sama")
+	_check(incoming.bp == 1, "cadangan yang masuk dapat +1 BP di gilirannya")
+	# Skill gagal karena SP kurang: aksi ditolak, BP tidak terpakai, giliran tetap.
+	var skill: SkillData = incoming.skills()[0]
+	incoming.sp = 0
+	var ok := s.perform(
+		{
+			"type": BattleSystem.ActionType.SKILL,
+			"skill": skill,
+			"targets": [s.enemies[0]],
+			"boost": 1
+		}
+	)
+	_check(not ok and incoming.bp == 1 and s.current == incoming, "skill tanpa SP ditolak, BP utuh")
+	incoming.sp = incoming.max_sp
+	var manual_flags: Array[bool] = []
+	s.swapped.connect(
+		func(_s: int, _a: Battler, _r: Battler, manual: bool) -> void: manual_flags.append(manual)
+	)
 	# KO otomatis digantikan cadangan.
 	var other := (slot + 1) % 4
 	var victim: Battler = s.active[other]
@@ -149,6 +167,9 @@ func _test_swap_rules() -> void:
 	victim.hp = 1
 	s.perform({"type": BattleSystem.ActionType.ATTACK, "targets": [victim]})
 	_check(s.active[other] == backup and victim.is_reserve, "anggota KO diganti cadangan")
+	_check(
+		manual_flags.size() == 1 and not manual_flags[0], "pergantian karena KO ditandai otomatis"
+	)
 
 
 func _test_full_battles() -> void:

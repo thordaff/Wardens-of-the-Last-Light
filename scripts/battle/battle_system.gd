@@ -32,7 +32,8 @@ signal shield_changed(target: Battler)
 signal broke(target: Battler)
 signal recovered(target: Battler)
 signal knocked_out(target: Battler)
-signal swapped(slot: int, now_active: Battler, now_reserve: Battler)
+## `manual` = dipilih pemain lewat Tukar; false = otomatis karena anggota aktif KO.
+signal swapped(slot: int, now_active: Battler, now_reserve: Battler, manual: bool)
 signal bp_changed(battler: Battler)
 signal battle_ended(result: Result)
 
@@ -188,19 +189,23 @@ func swap(slot: int) -> bool:
 	if not can_swap(slot):
 		return false
 	_swapped_slots[slot] = true
-	_do_swap(slot)
+	_do_swap(slot, true)
 	return true
 
 
 ## Aksi: {type: ActionType, skill: SkillData, targets: Array[Battler],
 ##        boost: int, weapon: int}. Target kosong untuk skill "semua".
-func perform(action: Dictionary) -> void:
+## Mengembalikan false (tanpa mengubah apa pun, giliran tidak habis) bila aksi
+## tidak sah, misalnya SP kurang, target kosong, atau kabur dari boss.
+func perform(action: Dictionary) -> bool:
 	if result != Result.NONE or current == null:
-		return
+		return false
 	var actor := current
+	if not is_valid_action(actor, action):
+		return false
 	var type: ActionType = action.get("type", ActionType.ATTACK)
 	var boost := 0
-	if not actor.is_enemy:
+	if not actor.is_enemy and (type == ActionType.ATTACK or type == ActionType.SKILL):
 		boost = clampi(int(action.get("boost", 0)), 0, mini(MAX_BOOST, actor.bp))
 		action["boost"] = boost
 	match type:
@@ -219,6 +224,23 @@ func perform(action: Dictionary) -> void:
 		bp_changed.emit(actor)
 	action_performed.emit(actor, action)
 	_check_end()
+	return true
+
+
+func is_valid_action(actor: Battler, action: Dictionary) -> bool:
+	var type: ActionType = action.get("type", ActionType.ATTACK)
+	var targets: Array = action.get("targets", [])
+	match type:
+		ActionType.ATTACK:
+			return not targets.is_empty() and targets[0] != null and targets[0].is_alive()
+		ActionType.SKILL:
+			var skill: SkillData = action.get("skill")
+			if skill == null or actor.sp < skill.sp_cost:
+				return false
+			return not skill.is_single_target() or not targets.is_empty()
+		ActionType.FLEE:
+			return can_flee
+	return true
 
 
 ## AI musuh sederhana: kadang skill, selain itu serang biasa ke party acak.
@@ -382,10 +404,10 @@ func _on_ko(target: Battler) -> void:
 		return
 	var r := reserve[target.slot]
 	if r != null and r.is_alive():
-		_do_swap(target.slot)
+		_do_swap(target.slot, false)
 
 
-func _do_swap(slot: int) -> void:
+func _do_swap(slot: int, manual: bool) -> void:
 	var out := active[slot]
 	var inn := reserve[slot]
 	active[slot] = inn
@@ -397,9 +419,12 @@ func _do_swap(slot: int) -> void:
 	var i := order.find(out)
 	if i != -1:
 		order[i] = inn
+	swapped.emit(slot, inn, out, manual)
 	if current == out:
+		# Cadangan yang masuk di giliran pasangannya memulai giliran sendiri
+		# (+1 BP, status bertahan direset).
 		current = inn
-	swapped.emit(slot, inn, out)
+		_start_turn(inn)
 
 
 func _check_end() -> void:

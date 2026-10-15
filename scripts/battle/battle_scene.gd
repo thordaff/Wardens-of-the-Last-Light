@@ -110,7 +110,10 @@ func _submit(action: Dictionary) -> void:
 	action["boost"] = _boost
 	action["weapon"] = _weapon
 	_state = UiState.BUSY
-	system.perform(action)
+	if not system.perform(action):
+		_say("Aksi tidak bisa dipakai.")
+		_show_commands()
+		return
 	_after_action()
 
 
@@ -307,8 +310,10 @@ func _on_knocked_out(target: Battler) -> void:
 		_set_view_alpha(view, 0.25)
 
 
-func _on_swapped(slot: int, now_active: Battler, now_reserve: Battler) -> void:
-	PartyManager.swap_slot(slot)
+func _on_swapped(slot: int, now_active: Battler, now_reserve: Battler, manual: bool) -> void:
+	# Formasi pilihan pemain dibawa keluar battle; pergantian otomatis karena KO tidak.
+	if manual:
+		PartyManager.swap_slot(slot)
 	var out_name := now_reserve.display_name if now_reserve != null else "-"
 	_say("%s masuk menggantikan %s." % [now_active.display_name, out_name])
 	_place_party_view(now_active, true)
