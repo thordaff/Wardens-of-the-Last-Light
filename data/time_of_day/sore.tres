@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TimeOfDayPreset" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/time_of_day_preset.gd" id="1_preset"]
+
+[resource]
+script = ExtResource("1_preset")
+phase = 2
+sun_color = Color(0.8784, 0.4784, 0.2275, 1)
+sun_energy = 0.7
+sun_elevation_deg = 15.0
+ambient_color = Color(0.4784, 0.2941, 0.4157, 1)
+ambient_energy = 0.45
+fog_density = 0.02
+fog_albedo = Color(0.549, 0.5255, 0.6588, 1)
+glow_intensity = 0.8
+saturation = 1.0
+lantern_strength = 0.7
+windows_lit = true
