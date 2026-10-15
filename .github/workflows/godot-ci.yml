@@ -1,8 +1,12 @@
 name: Godot CI
 on:
   pull_request:
+    # labeled: QA memberi label "qa-lolos" -> auto-merge (lihat job di bawah).
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   push:
     branches: [main]
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -38,3 +42,43 @@ jobs:
         run: ./godot --headless --quit-after 120 res://scenes/main.tscn 2>&1 | tee debug.log; ! grep -E "SCRIPT ERROR|ERROR:" debug.log
       - name: Jalankan game over 60 frame
         run: ./godot --headless --quit-after 60 res://scenes/ui/game_over.tscn 2>&1 | tee gameover.log; ! grep -E "SCRIPT ERROR|ERROR:" gameover.log
+
+  # Push baru setelah QA memberi label = kode belum dites QA: cabut labelnya.
+  drop-qa-label:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'synchronize' &&
+      contains(github.event.pull_request.labels.*.name, 'qa-lolos')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Cabut label qa-lolos
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --remove-label qa-lolos
+
+  # Auto-merge ke main hanya saat QA memberi label "qa-lolos" (hanya QA yang
+  # boleh memberinya), CI pada commit itu hijau, dan PR bukan draft.
+  # Merge memakai commit yang dites (--match-head-commit).
+  auto-merge:
+    needs: check
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'qa-lolos' &&
+      github.event.pull_request.base.ref == 'main' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Merge ke main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --match-head-commit "$SHA"
