@@ -3,6 +3,7 @@ extends Node3D
 ## Diganti scene judul / field setelah prototipe battle jalan.
 
 const BATTLE_SCENE := "res://scenes/battle/battle.tscn"
+const TOWN_SCENE := "res://scenes/world/town_graybox.tscn"
 const ENCOUNTERS: Array[String] = [
 	"res://data/encounters/01_rute_serigala.tres",
 	"res://data/encounters/02_lima_musuh.tres",
@@ -33,6 +34,7 @@ func _process(_delta: float) -> void:
 	lines.append("")
 	lines.append("Prototipe battle: tekan 1, 2, atau 3")
 	lines.append("1 Serigala   2 Lima musuh   3 Boss")
+	lines.append("4: kota graybox (field)")
 	lines.append("T: majukan jam 3 jam")
 	_label.text = "\n".join(lines)
 
@@ -46,5 +48,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var index := key.keycode - KEY_1
 			BattleScene.pending_encounter = load(ENCOUNTERS[index])
 			get_tree().change_scene_to_file(BATTLE_SCENE)
+		KEY_4:
+			get_tree().change_scene_to_file(TOWN_SCENE)
 		KEY_T:
 			GameClock.set_hour(GameClock.hour + 3.0)
