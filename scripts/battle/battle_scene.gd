@@ -7,7 +7,8 @@ extends Node3D
 enum UiState { BUSY, COMMAND, SKILL, TARGET, SWAP, ENDED }
 
 const MAIN_SCENE := "res://scenes/main.tscn"
-const CHARACTER_DIR := "res://data/characters/"
+const GAME_OVER_SCENE := "res://scenes/ui/game_over.tscn"
+const GAME_OVER_DELAY := 1.2
 const DEFAULT_ENCOUNTER := "res://data/encounters/02_lima_musuh.tres"
 const PRESET_PATHS := [
 	"res://data/time_of_day/pagi.tres",
@@ -24,6 +25,8 @@ const BOSS_SIZE := Vector2(2.4, 2.6)
 
 ## Diisi sebelum change_scene ke battle; kosong = DEFAULT_ENCOUNTER.
 static var pending_encounter: EncounterData
+## Encounter battle terakhir, untuk "Ulangi Battle" di layar game over.
+static var last_encounter: EncounterData
 ## Scene tujuan setelah battle selesai; kosong = MAIN_SCENE.
 static var return_scene: String = ""
 
@@ -56,6 +59,7 @@ func _ready() -> void:
 	pending_encounter = null
 	if encounter == null:
 		encounter = load(DEFAULT_ENCOUNTER)
+	last_encounter = encounter
 	GameClock.begin_battle()
 	system.setup(PartyManager.get_active(), PartyManager.get_reserves(), encounter)
 	_spawn_views()
@@ -332,6 +336,11 @@ func _on_battle_ended(result: BattleSystem.Result) -> void:
 			_end_label.text = "MENANG"
 		BattleSystem.Result.DEFEAT:
 			_end_label.text = "KALAH"
+			_end_button.hide()
+			_end_panel.show()
+			await get_tree().create_timer(GAME_OVER_DELAY).timeout
+			get_tree().change_scene_to_file(GAME_OVER_SCENE)
+			return
 		BattleSystem.Result.FLED:
 			_end_label.text = "KABUR"
 	_end_panel.show()
@@ -669,12 +678,5 @@ func _say(text: String) -> void:
 
 
 func _ensure_party() -> void:
-	if PartyManager.member_count() > 0:
-		return
-	# Roster default untuk prototipe: urutan file = aktif 1-4 lalu cadangan.
-	var files := Array(DirAccess.get_files_at(CHARACTER_DIR))
-	files.sort()
-	for f in files:
-		var path: String = f.trim_suffix(".remap")
-		if path.ends_with(".tres"):
-			PartyManager.add_member(load(CHARACTER_DIR + path))
+	if PartyManager.member_count() == 0:
+		PartyManager.load_default_roster()

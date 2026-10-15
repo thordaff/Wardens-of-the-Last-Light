@@ -6,8 +6,17 @@ Dibuat dengan **Godot 4.5**, renderer **Forward+**.
 ## Menjalankan
 
 1. Buka Godot 4.5 (atau lebih baru), pilih **Import**, arahkan ke `project.godot` di folder ini.
-2. Tekan **F5**. Scene awal (`scenes/main.tscn`) masih scene uji yang menampilkan jam dan fase waktu.
-3. Tekan **1**, **2**, atau **3** untuk membuka prototipe battle (serigala, 5 musuh, boss), atau **4** untuk kota graybox. **T** memajukan jam 3 jam, jadi lighting ikut fase.
+2. Tekan **F5**. Game dibuka di **title screen** (`scenes/ui/title_screen.tscn`). **Mulai Baru** memulai di kota graybox jam 08:00 dengan roster default.
+3. Di title screen, **F1** membuka scene uji lama (`scenes/main.tscn`): **1**, **2**, **3** untuk prototipe battle (serigala, 5 musuh, boss), **4** untuk kota graybox. **T** memajukan jam 3 jam, jadi lighting ikut fase.
+
+## Alur UI
+
+Semua menu bisa dipakai penuh dengan keyboard atau gamepad (fokus otomatis ke tombol pertama). Gaya placeholder ada di satu Theme bersama, `themes/ui_theme.tres` (dipasang sebagai `gui/theme/custom`), jadi tim art cukup mengganti theme itu.
+
+- **Title screen**: Mulai Baru, Lanjutkan (nonaktif sampai ada sistem save), Pengaturan, Keluar.
+- **Jeda** (Esc / Start di field): Lanjutkan, Pengaturan, Kembali ke judul. Game dan `GameClock` berhenti selama jeda. Autoload `PauseMenu` hanya aktif di scene yang masuk group `pausable` (saat ini kota).
+- **Game over** ("Cahaya Padam") setelah seluruh party kalah: **Coba lagi** mengulang battle yang sama (lalu kembali ke tempat semula di field), **Kembali ke judul**.
+- **Pengaturan**: volume master/musik/SFX (bus `Master`, `Music`, `SFX` di `default_bus_layout.tres`), layar penuh/jendela, skala resolusi 1x–4x dari 640×360. Langsung diterapkan dan disimpan ke `user://settings.cfg` oleh autoload `Settings`.
 
 ## Kota graybox (field)
 
@@ -57,9 +66,10 @@ godot --headless -s res://tests/smoke_test.gd
 godot --headless -s res://tests/test_battle.gd
 godot --headless -s res://tests/test_town.gd
 godot --headless -s res://tests/test_encounters.gd
+godot --headless -s res://tests/test_settings.gd
 ```
 
-CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedua tes, dan scene utama + battle secara headless di setiap PR.
+CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, semua tes, lalu title screen, battle, kota, scene uji, dan game over secara headless di setiap PR.
 
 ## Kontrol
 
@@ -67,7 +77,8 @@ CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedu
 |---|---|---|
 | Gerak / pilih menu | WASD / panah | Stik kiri / D-pad |
 | Konfirmasi | Enter / Spasi | A |
-| Batal | Esc | B |
+| Batal / kembali | Esc | B |
+| Jeda (di field) | Esc | Start |
 | Boost + / − | E / Q | R1 / L1 |
 
 ## Struktur folder
@@ -75,8 +86,10 @@ CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedu
 | Folder | Isi |
 |---|---|
 | `scenes/` | Scene Godot (`.tscn`): field, battle, UI |
-| `scripts/autoload/` | Singleton global: `GameClock`, `PartyManager` |
+| `scripts/autoload/` | Singleton global: `GameClock`, `PartyManager`, `Settings` |
 | `scripts/battle/` | Logika battle dan resource data karakter/musuh |
+| `scripts/ui/` | Title screen, jeda, game over, pengaturan |
+| `themes/` | Theme UI bersama |
 | `scripts/world/` | Field, lighting, siklus waktu |
 | `assets/characters/` | Sprite karakter, satu folder per karakter |
 | `assets/enemies/` | Sprite musuh |
@@ -89,7 +102,11 @@ CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedu
 **GameClock** — jam dalam game ("Napas Suar"). Empat fase: pagi (06–10), siang (10–16), sore (16–19), malam (19–06).
 Jam berhenti saat battle (`begin_battle()` / `end_battle()`). Preset lighting tiap fase ada di `data/time_of_day/`.
 
-**PartyManager** — roster maksimal 8 karakter, 4 aktif. Tiap slot battle berisi 1 aktif dan 1 cadangan; `swap_slot(i)` menukar keduanya.
+**PartyManager** — roster maksimal 8 karakter, 4 aktif. Tiap slot battle berisi 1 aktif dan 1 cadangan; `swap_slot(i)` menukar keduanya. `load_default_roster()` mengisi roster dari `data/characters/`.
+
+**Settings** — volume, layar penuh, skala resolusi; disimpan di `user://settings.cfg`.
+
+**PauseMenu** — menu jeda (scene autoload, CanvasLayer 10).
 
 ## Dokumen desain
 
