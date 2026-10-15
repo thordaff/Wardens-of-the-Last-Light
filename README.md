@@ -7,7 +7,16 @@ Dibuat dengan **Godot 4.5**, renderer **Forward+**.
 
 1. Buka Godot 4.5 (atau lebih baru), pilih **Import**, arahkan ke `project.godot` di folder ini.
 2. Tekan **F5**. Scene awal (`scenes/main.tscn`) masih scene uji yang menampilkan jam dan fase waktu.
-3. Tekan **1**, **2**, atau **3** untuk membuka prototipe battle (serigala, 5 musuh, boss). **T** memajukan jam 3 jam, jadi lighting battle ikut fase.
+3. Tekan **1**, **2**, atau **3** untuk membuka prototipe battle (serigala, 5 musuh, boss), atau **4** untuk kota graybox. **T** memajukan jam 3 jam, jadi lighting ikut fase.
+
+## Kota graybox (field)
+
+`scenes/world/town_graybox.tscn`: kota kecil dari blok CSG untuk menguji tampilan HD-2D.
+
+- Kamera tetap (FOV 32°, pitch −28°, jarak 11 m) mengikuti pemain dengan halus, DoF tilt-shift (`scripts/world/field_camera.gd`).
+- `TimeOfDay` menerapkan preset `data/time_of_day/` ke cahaya utama dan Environment sesuai `GameClock`, dengan blend 1 jam antar fase. Cahaya datang dari arah Ashspire (`ashspire_yaw_deg`), lentera (group `lanterns`) berdenyut ±10%, jendela (group `lit_windows`) menyala sesuai fase.
+- Pemain: `AnimatedSprite3D` billboard Y dengan sheet jalan Aldric (4 frame per arah, kanan = cermin kiri). Keyboard dan gamepad.
+- Rumput hijau di timur kota = `EncounterZone`: berjalan di dalamnya bisa memicu battle acak. Setelah battle, pemain kembali ke posisi semula.
 
 ## Prototipe battle
 
