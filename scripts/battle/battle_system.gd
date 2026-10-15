@@ -89,7 +89,7 @@ func setup(
 	var count := mini(encounter.enemies.size(), MAX_ENEMIES)
 	var seen: Dictionary = {}
 	for i in count:
-		var e := Battler.from_enemy(encounter.enemies[i], i)
+		var e := Battler.from_enemy(encounter.enemies[i], i, encounter.stat_scale)
 		var n: int = seen.get(e.display_name, 0)
 		seen[e.display_name] = n + 1
 		enemies.append(e)

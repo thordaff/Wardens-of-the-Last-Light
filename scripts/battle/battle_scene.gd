@@ -24,6 +24,8 @@ const BOSS_SIZE := Vector2(2.4, 2.6)
 
 ## Diisi sebelum change_scene ke battle; kosong = DEFAULT_ENCOUNTER.
 static var pending_encounter: EncounterData
+## Scene tujuan setelah battle selesai; kosong = MAIN_SCENE.
+static var return_scene: String = ""
 
 var system := BattleSystem.new()
 var _views: Dictionary = {}  # Battler -> Node3D
@@ -565,7 +567,9 @@ func _build_hud() -> void:
 
 
 func _on_back() -> void:
-	get_tree().change_scene_to_file(MAIN_SCENE)
+	var target := return_scene if not return_scene.is_empty() else MAIN_SCENE
+	return_scene = ""
+	get_tree().change_scene_to_file(target)
 
 
 func _add_label(parent: Control, pos: Vector2) -> Label:

@@ -7,7 +7,34 @@ Dibuat dengan **Godot 4.5**, renderer **Forward+**.
 
 1. Buka Godot 4.5 (atau lebih baru), pilih **Import**, arahkan ke `project.godot` di folder ini.
 2. Tekan **F5**. Scene awal (`scenes/main.tscn`) masih scene uji yang menampilkan jam dan fase waktu.
-3. Tekan **1**, **2**, atau **3** untuk membuka prototipe battle (serigala, 5 musuh, boss). **T** memajukan jam 3 jam, jadi lighting battle ikut fase.
+3. Tekan **1**, **2**, atau **3** untuk membuka prototipe battle (serigala, 5 musuh, boss), atau **4** untuk kota graybox. **T** memajukan jam 3 jam, jadi lighting ikut fase.
+
+## Kota graybox (field)
+
+`scenes/world/town_graybox.tscn`: kota kecil bergaya Eropa "mewah & historis" (art-direction.md §7b), masih dari blok CSG dengan palet §7b sampai kit half-timber dari tim art siap. Scene ini dibuat oleh `tools/gen_town_graybox.py` (jalankan ulang hanya bila ingin kembali ke tata letak generator; editan manual di Godot akan tertimpa).
+
+- 4 ketinggian: jalan bawah & pasar (0 m), alun-alun dengan air mancur (1.5 m), teras kapel (3 m), belvedere (4.5 m), dihubungkan tangga lebar berpagar. Dinding penahan dan balustrade dengan baluster.
+- 12 rumah half-timber 2–3 lantai: fondasi batu pasir, lantai atas menjorok, balok kayu, atap slate teal curam 50°, dormer, cerobong, jendela berbunga dengan kusen hijau/biru/merah, spanduk atau papan toko, lentera dinding. Kapel bermenara di teras.
+- Set dressing acak (seed tetap): tong, peti, pot bunga, pohon, karung, keranjang buah, minimal 1 per sel 4×4 m yang bisa dimasuki; kios pasar berkanopi.
+- Kamera tetap (FOV 32°, pitch −28°, jarak 11 m), DoF near blur s/d 4 m dan far blur mulai 14 m, dengan occluder foreground (pohon, balustrade, ujung atap) yang menempel di kamera dan selalu blur (`scripts/world/field_camera.gd`).
+- Grading hangat sepia (color correction: bayangan coklat, sorotan keemasan), vignette 0.35 (`shaders/vignette.gdshader`), debu cahaya (GPUParticles3D), kabut krem.
+- `TimeOfDay` menerapkan preset `data/time_of_day/` ke cahaya utama dan Environment sesuai `GameClock`, dengan blend 1 jam antar fase. Cahaya datang dari arah Ashspire (`ashspire_yaw_deg`), lentera (group `lanterns`) berdenyut ±10%, jendela (group `lit_windows`) menyala sesuai fase.
+- Pemain: `AnimatedSprite3D` billboard Y dengan sheet jalan Aldric (4 frame per arah). Keyboard dan gamepad.
+- Rumput di luar gerbang timur = `EncounterZone`: berjalan di dalamnya bisa memicu battle acak. Setelah battle, pemain kembali ke posisi semula.
+
+## Encounter per fase (Napas Suar)
+
+Pudar mengikuti jam: `data/encounter_tables/kota_awal.tres` (`EncounterTable`) berisi satu `PhaseEncounterSet` per fase.
+
+| Fase | Laju | Formasi | Langka | Kabut |
+|---|---|---|---|---|
+| Pagi | ×0.8 | serigala, kelelawar | – | ×1.0 |
+| Siang | ×0.5 | kelelawar lemah (stat ×0.9) | – | ×0.6 |
+| Sore | ×1.0 | serigala, 5 musuh | – | ×1.2 |
+| Malam | ×1.6 | Hampa ×1.3, kawanan ×1.25, 5 musuh | Bayang Suar 10% | ×1.5 |
+
+- `EncounterZone.table` memakai laju dan formasi fase saat ini; `EncounterData.stat_scale` membuat varian kuat (HP dan atk/def, speed dan shield tetap).
+- `TimeOfDay.pudar_table` mengalikan kepadatan kabut volumetrik dengan `fog_density_scale` fase yang sama (ikut blend antar fase).
 
 ## Prototipe battle
 
@@ -28,6 +55,8 @@ Semua angka ada di Resource `data/` (`characters/`, `skills/`, `enemies/`, `enco
 godot --headless --import
 godot --headless -s res://tests/smoke_test.gd
 godot --headless -s res://tests/test_battle.gd
+godot --headless -s res://tests/test_town.gd
+godot --headless -s res://tests/test_encounters.gd
 ```
 
 CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedua tes, dan scene utama + battle secara headless di setiap PR.
