@@ -29,6 +29,7 @@ Semua menu bisa dipakai penuh dengan keyboard atau gamepad (fokus otomatis ke to
 - Grading hangat sepia (color correction: bayangan coklat, sorotan keemasan), vignette 0.35 (`shaders/vignette.gdshader`), debu cahaya (GPUParticles3D), kabut krem.
 - `TimeOfDay` menerapkan preset `data/time_of_day/` ke cahaya utama dan Environment sesuai `GameClock`, dengan blend 1 jam antar fase. Cahaya datang dari arah Ashspire (`ashspire_yaw_deg`), lentera (group `lanterns`) berdenyut ±10%, jendela (group `lit_windows`) menyala sesuai fase.
 - Pemain: `AnimatedSprite3D` billboard Y dengan sheet jalan Aldric (4 frame per arah). Keyboard dan gamepad.
+- Performa: generator menulis mesh primitif (bukan CSG). `MeshMerger` (`scripts/world/mesh_merger.gd`) di tiap rumah, tangga, kios, dan petak prop 8×8 m menggabungkannya saat runtime jadi satu mesh per material, jadi satu bangunan hanya beberapa draw call dan frustum culling tetap jalan per petak. Hanya 4 lentera di jalur utama yang ber-shadow. `tests/perf_town.gd` mengecek struktur ini di CI; jalankan tanpa `--headless` di laptop dev untuk mengukur FPS (target ≥60) dan draw call.
 - Rumput di luar gerbang timur = `EncounterZone`: berjalan di dalamnya bisa memicu battle acak. Setelah battle, pemain kembali ke posisi semula.
 
 ## Encounter per fase (Napas Suar)
@@ -67,6 +68,7 @@ godot --headless -s res://tests/test_battle.gd
 godot --headless -s res://tests/test_town.gd
 godot --headless -s res://tests/test_encounters.gd
 godot --headless -s res://tests/test_settings.gd
+godot --headless -s res://tests/perf_town.gd
 ```
 
 CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, semua tes, lalu title screen, battle, kota, scene uji, dan game over secara headless di setiap PR.

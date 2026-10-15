@@ -2,7 +2,7 @@
 """Generator scene kota graybox (art-direction.md §7b: kota mewah & historis).
 
 Menulis scenes/world/town_graybox.tscn dari tata letak di bawah. Geometri masih
-placeholder (CSG + warna palet §7b) sampai kit half-timber dari tim art siap.
+placeholder (mesh primitif + warna palet §7b, digabung per grup oleh MeshMerger) sampai kit half-timber dari tim art siap.
 
     python3 tools/gen_town_graybox.py
 
@@ -100,42 +100,85 @@ def mat(id_, color, extra=None):
     return f'SubResource("{id_}")'
 
 
+_meshes = {}
+_colliders = {}
+
+
+def shared(typ, props):
+    """Satu sub_resource mesh/shape per kombinasi parameter, dipakai bersama."""
+    key = (typ, tuple(sorted(props.items())))
+    if key not in _meshes:
+        id_ = f"{typ}_{len(_meshes) + 1}"
+        add_sub(typ, id_, props)
+        _meshes[key] = id_
+    return f'SubResource("{_meshes[key]}")'
+
+
+# Prop yang sedang dibuat: (grup prop, petak, posisi, rot_y). Collider prop masuk ke
+# StaticBody3D petaknya, bukan satu body per prop.
+current_prop = None
+
+
+def collider(parent, pos, shape, rot_x=0.0, rot_y=0.0):
+    """Satu StaticBody3D per grup; tiap collider jadi CollisionShape3D di dalamnya."""
+    if current_prop and parent == current_prop[0]:
+        _, parent, (px, py, pz), pry = current_prop
+        r = math.radians(pry)
+        x, y, z = pos
+        pos = (px + math.cos(r) * x + math.sin(r) * z, py + y, pz - math.sin(r) * x + math.cos(r) * z)
+        rot_y += pry
+    if parent not in _colliders:
+        _colliders[parent] = node("Colliders", "StaticBody3D", parent)
+    props = {"transform": tf(pos, rot_x=rot_x, rot_y=rot_y), "shape": shape}
+    node("Shape", "CollisionShape3D", _colliders[parent], props)
+
+
+def mesh(parent, name, transform, mesh_res, material, groups=None):
+    """MeshInstance3D primitif; MeshMerger di grup induknya menggabungkannya saat runtime."""
+    props = {"transform": transform, "mesh": mesh_res, "material_override": material}
+    return node(name, "MeshInstance3D", parent, props, groups=groups)
+
+
 def box(parent, name, pos, size, material, collide=False, rot_y=0.0, rot_x=0.0, groups=None):
-    props = {"transform": tf(pos, rot_x=rot_x, rot_y=rot_y), "size": v3(*size), "material": material}
+    t = tf(pos, rot_x=rot_x, rot_y=rot_y)
     if collide:
-        props["use_collision"] = "true"
-    return node(name, "CSGBox3D", parent, props, groups=groups)
+        collider(parent, pos, box_shape(size), rot_x, rot_y)
+    return mesh(parent, name, t, shared("BoxMesh", {"size": v3(*size)}), material, groups)
 
 
 def cyl(parent, name, pos, radius, height, material, sides=10, cone=False, collide=False):
     props = {
-        "transform": tf(pos),
-        "radius": radius,
+        "top_radius": 0.0 if cone else radius,
+        "bottom_radius": radius,
         "height": height,
-        "sides": sides,
-        "material": material,
+        "radial_segments": sides,
+        "rings": 0,
     }
-    if cone:
-        props["cone"] = "true"
     if collide:
-        props["use_collision"] = "true"
-    return node(name, "CSGCylinder3D", parent, props)
+        shape = shared("CylinderShape3D", {"radius": radius, "height": height})
+        collider(parent, pos, shape)
+    return mesh(parent, name, tf(pos), shared("CylinderMesh", props), material)
 
 
 def sphere(parent, name, pos, radius, material):
-    props = {"transform": tf(pos), "radius": radius, "radial_segments": 10, "rings": 6, "material": material}
-    return node(name, "CSGSphere3D", parent, props)
+    props = {"radius": radius, "height": radius * 2, "radial_segments": 10, "rings": 6}
+    return mesh(parent, name, tf(pos), shared("SphereMesh", props), material)
 
 
 def roof(parent, name, pos, width, depth, height, material, rot_y=0.0):
-    """Atap pelana: segitiga di bidang XY, diekstrusi sepanjang -Z sedalam `depth`."""
-    props = {
-        "transform": tf(pos, rot_y=rot_y),
-        "polygon": f"PackedVector2Array({-width / 2}, 0, {width / 2}, 0, 0, {height})",
-        "depth": depth,
-        "material": material,
-    }
-    return node(name, "CSGPolygon3D", parent, props)
+    """Atap pelana: prisma segitiga, alas di `pos.y`, memanjang ke -Z sedalam `depth`."""
+    ry = math.radians(rot_y)
+    ox, oz = math.sin(ry) * -depth / 2, math.cos(ry) * -depth / 2
+    center = (pos[0] + ox, pos[1] + height / 2, pos[2] + oz)
+    prism = shared("PrismMesh", {"size": v3(width, height, depth)})
+    return mesh(parent, name, tf(center, rot_y=rot_y), prism, material)
+
+
+def merged(name, parent=".", props=None):
+    """Grup Node3D yang anak-anak primitifnya digabung per material saat runtime."""
+    props = dict(props or {})
+    props["script"] = 'ExtResource("11_merge")'
+    return node(name, "Node3D", parent, props)
 
 
 # --- resource -----------------------------------------------------------------
@@ -151,6 +194,7 @@ for i, n in enumerate(["pagi", "siang", "sore", "malam"]):
 add_ext("Script", "res://scripts/world/time_of_day_preset.gd", "7_preset")
 add_ext("Resource", "res://data/encounter_tables/kota_awal.tres", "9_table")
 add_ext("Shader", "res://shaders/vignette.gdshader", "10_vignette")
+add_ext("Script", "res://scripts/world/mesh_merger.gd", "11_merge")
 
 # Grading "historis" §7b: bayangan ke coklat #4A2E2A, sorotan ke #FFD27A.
 add_sub(
@@ -313,7 +357,7 @@ node(
 )
 
 # Lantai dan platform bertingkat.
-terrain = node("Terrain", "Node3D")
+terrain = merged("Terrain")
 box(terrain, "Ground", (4, -0.5, 0), (52, 1, 38), M["cobble"], collide=True)
 box(terrain, "Plaza", (0, L1 / 2, -1.5), (32, L1, 13), M["sand"], collide=True)
 box(terrain, "PlazaTiles", (0, L1 + 0.005, -1.5), (14, 0.01, 9), M["sand_dark"])
@@ -330,7 +374,7 @@ for name, pos, size in [
 
 def stairs(parent, name, x, z_top, z_bottom, y_top, y_bottom, width):
     """Tangga turun ke arah +z. Anak tangga visual + ramp collider tak terlihat."""
-    g = node(name, "Node3D", parent)
+    g = merged(name, parent)
     rise = y_top - y_bottom
     run = z_bottom - z_top
     steps = max(2, round(rise / 0.25))
@@ -365,7 +409,7 @@ def stairs(parent, name, x, z_top, z_bottom, y_top, y_bottom, width):
 
 def balustrade(parent, name, x0, x1, z, y, gaps=()):
     """Pagar batu dengan baluster tiap 0.5 m, dilewati di rentang `gaps`."""
-    g = node(name, "Node3D", parent)
+    g = merged(name, parent)
     segments = []
     start = x0
     for g0, g1 in sorted(gaps):
@@ -396,7 +440,7 @@ balustrade(levels, "BelvedereRail", -12, -8, -14.15, L3, gaps=[(-11.1, -8.9)])
 def house(parent, name, x, y, z, w, d, floors, rot_y=0.0, roof_mat="slate", frame="frame_green", lantern=True):
     """Rumah half-timber: fondasi batu, lantai atas menjorok (jetty), atap curam,
     dormer, cerobong, jendela berbunga, spanduk/papan, lentera dinding."""
-    g = node(name, "Node3D", parent, {"transform": tf((x, y, z), rot_y=rot_y)})
+    g = merged(name, parent, {"transform": tf((x, y, z), rot_y=rot_y)})
     floor_h = 2.6
     found_h = 0.8
     plaster = M["plaster"] if rng.random() < 0.5 else M["plaster2"]
@@ -491,7 +535,7 @@ for i, (x, y, z, w, d, fl, ry, rm) in enumerate(H):
     house(buildings, f"House{i + 1}", x, y, z, w, d, fl, ry, rm, frames[i % 3])
 
 # Kapel dengan menara di teras tengah.
-chapel = node("Chapel", "Node3D", buildings, {"transform": tf((0, L2, -14.5))})
+chapel = merged("Chapel", buildings, {"transform": tf((0, L2, -14.5))})
 box(chapel, "Nave", (0, 2.5, 0), (5, 5, 6), M["sand"], collide=True)
 roof(chapel, "Roof", (0, 5, 3.3), 5.8, 6.6, 3.5, M["slate"])
 box(chapel, "Tower", (0, 5, -2.2), (2.2, 10, 2.2), M["sand"], collide=True)
@@ -501,13 +545,13 @@ box(chapel, "Door", (0, 1.1, 3.03), (1.4, 2.2, 0.06), M["beam2"])
 block(-3, -18, 3, -11)
 
 # Gazebo belvedere (level 4).
-gazebo = node("Gazebo", "Node3D", buildings, {"transform": tf((-10.5, L3, -16.5))})
+gazebo = merged("Gazebo", buildings, {"transform": tf((-10.5, L3, -16.5))})
 for px, pz in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
     cyl(gazebo, "Pillar", (px, 1.2, pz), 0.12, 2.4, M["plaster2"], sides=8)
 cyl(gazebo, "Dome", (0, 3.0, 0), 1.6, 1.2, M["slate2"], sides=8, cone=True)
 
 # Air mancur di tengah alun-alun.
-fountain = node("Fountain", "Node3D", ".", {"transform": tf((0, L1, -1.5))})
+fountain = merged("Fountain", ".", {"transform": tf((0, L1, -1.5))})
 cyl(fountain, "Basin", (0, 0.35, 0), 1.8, 0.7, M["sand_dark"], sides=16, collide=True)
 cyl(fountain, "Column", (0, 1.1, 0), 0.25, 1.6, M["sand"], sides=8)
 cyl(fountain, "Bowl", (0, 1.9, 0), 0.8, 0.25, M["sand"], sides=12)
@@ -516,7 +560,7 @@ block(-2.2, -3.7, 2.2, 0.7)
 # Pasar di jalan bawah (kanopi bergaris).
 market = node("Market", "Node3D")
 for i, (mx, mz, mcol) in enumerate([(-6.5, 11.5, "banner"), (6.5, 11.5, "slate2"), (-6.5, 15, "slate2"), (6.5, 15, "banner")]):
-    stall = node(f"Stall{i + 1}", "Node3D", market, {"transform": tf((mx, L0, mz))})
+    stall = merged(f"Stall{i + 1}", market, {"transform": tf((mx, L0, mz))})
     box(stall, "Counter", (0, 0.5, 0), (2.4, 1.0, 1.0), M["wood"], collide=True)
     for sx in (-1.1, 1.1):
         box(stall, "Pole", (sx, 1.2, -0.4), (0.08, 2.4, 0.08), M["beam"])
@@ -528,7 +572,9 @@ for i, (mx, mz, mcol) in enumerate([(-6.5, 11.5, "banner"), (6.5, 11.5, "slate2"
     block(mx - 1.4, mz - 0.8, mx + 1.4, mz + 0.8)
 
 # Lentera jalan.
-lamps = node("Lanterns", "Node3D")
+lamps = merged("Lanterns")
+# Hanya lentera di jalur utama (alun-alun + kaki tangga) yang ber-shadow; omni shadow mahal.
+SHADOW_LAMPS = {0, 1, 4, 5}
 for i, (lx, lz) in enumerate([(-3.2, 2.5), (3.2, 2.5), (-3.2, -6.5), (3.2, -6.5), (-3.5, 9), (3.5, 9), (16, 15), (24, 15)]):
     ly = ground_height(lx, lz)
     lamp = node(f"Lamp{i + 1}", "Node3D", lamps, {"transform": tf((lx, ly, lz))})
@@ -543,7 +589,7 @@ for i, (lx, lz) in enumerate([(-3.2, 2.5), (3.2, 2.5), (-3.2, -6.5), (3.2, -6.5)
             "light_color": col("#FFAD4D"),
             "light_energy": 2.0,
             "omni_range": 6.0,
-            "shadow_enabled": "true",
+            "shadow_enabled": "true" if i in SHADOW_LAMPS else "false",
         },
     )
     block(lx - 0.3, lz - 0.3, lx + 0.3, lz + 0.3)
@@ -556,6 +602,9 @@ footprints.append((16, 12.5, 30, 17.5))
 
 # Set dressing: minimal 1 prop per sel 4x4 m yang terlihat (§7b).
 props = node("SetDressing", "Node3D")
+# Prop digabung per petak 8x8 m: draw call sedikit tapi frustum culling tetap jalan.
+CHUNK = 8
+chunks = {}
 
 
 def free(x, z, r=0.6):
@@ -565,7 +614,13 @@ def free(x, z, r=0.6):
 def place_prop(x, z):
     y = ground_height(x, z)
     kind = rng.choice(["barrel", "crate", "pot", "tree", "sack", "basket", "barrel", "pot"])
-    g = node(kind.capitalize(), "Node3D", props, {"transform": tf((x, y, z), rot_y=rng.uniform(0, 360))})
+    key = (math.floor(x / CHUNK), math.floor(z / CHUNK))
+    if key not in chunks:
+        chunks[key] = merged(f"Chunk_{key[0]}_{key[1]}".replace("-", "m"), props)
+    ry = rng.uniform(0, 360)
+    g = node(kind.capitalize(), "Node3D", chunks[key], {"transform": tf((x, y, z), rot_y=ry)})
+    global current_prop
+    current_prop = (g, chunks[key], (x, y, z), ry)
     if kind == "barrel":
         cyl(g, "Body", (0, 0.45, 0), 0.35, 0.9, M["wood"], sides=10, collide=True)
         cyl(g, "Hoop", (0, 0.7, 0), 0.37, 0.06, M["beam"], sides=10)
@@ -590,6 +645,7 @@ def place_prop(x, z):
         for k in range(3):
             sphere(g, "Fruit", (-0.12 + k * 0.12, 0.45, 0), 0.1, M["banner"] if k % 2 else M["flower"])
     block(x - 0.5, z - 0.5, x + 0.5, z + 0.5, pad=0.2)
+    current_prop = None
 
 
 for cx in range(-20, 28, 4):
@@ -610,7 +666,7 @@ zone = node(
     {"transform": tf((26, 1, 12)), "script": 'ExtResource("5_zone")', "table": 'ExtResource("9_table")'},
 )
 node("CollisionShape3D", "CollisionShape3D", zone, {"shape": 'SubResource("Box_zone")'})
-gate = node("EastGate", "Node3D", ".", {"transform": tf((21, L0, 15))})
+gate = merged("EastGate", ".", {"transform": tf((21, L0, 15))})
 for gz in (-2.2, 2.2):
     box(gate, "Pillar", (0, 2, gz), (0.8, 4, 0.8), M["sand"], collide=True)
 box(gate, "Arch", (0, 4.3, 0), (0.9, 0.6, 5.2), M["sand_dark"])
@@ -656,7 +712,7 @@ cam = node(
 )
 
 # Foreground occluder (§7b): menempel di kamera, ±3 m di depannya, selalu di zona near blur.
-fg = node("Foreground", "Node3D", cam)
+fg = merged("Foreground", cam)
 sphere(fg, "TreeCanopy", (-1.55, -0.95, -3.0), 0.75, M["leaf"])
 sphere(fg, "TreeCanopy2", (-1.05, -1.1, -3.3), 0.55, M["leaf2"])
 box(fg, "Balustrade", (0.6, -1.02, -3.1), (1.6, 0.14, 0.18), M["sand_dark"])
