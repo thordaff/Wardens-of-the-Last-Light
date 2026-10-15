@@ -42,6 +42,7 @@ var _sub_panel: PanelContainer
 var _boost_label: Label
 var _end_panel: PanelContainer
 var _end_label: Label
+var _end_button: Button
 
 
 func _ready() -> void:
@@ -71,16 +72,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_show_commands()
 		return
-	var key := event as InputEventKey
-	if key != null and key.pressed and not key.echo:
-		match key.keycode:
-			KEY_E:
-				_set_boost(_boost + 1)
-			KEY_Q:
-				_set_boost(_boost - 1)
+	if event.is_action_pressed("boost_up"):
+		_set_boost(_boost + 1)
+	elif event.is_action_pressed("boost_down"):
+		_set_boost(_boost - 1)
 
 
 # --- alur giliran -----------------------------------------------------------
+
 
 func _advance() -> void:
 	_state = UiState.BUSY
@@ -117,6 +116,7 @@ func _submit(action: Dictionary) -> void:
 
 # --- menu -------------------------------------------------------------------
 
+
 func _show_commands() -> void:
 	_state = UiState.COMMAND
 	_clear(_submenu)
@@ -132,10 +132,13 @@ func _show_commands() -> void:
 	_add_button(_commands, "Skill", _on_skill_menu)
 	_add_button(_commands, "Tukar", _on_swap_menu)
 	_add_button(_commands, "Bertahan", _submit.bind({"type": BattleSystem.ActionType.DEFEND}))
-	var flee := _add_button(_commands, "Kabur", _submit.bind({"type": BattleSystem.ActionType.FLEE}))
+	var flee := _add_button(
+		_commands, "Kabur", _submit.bind({"type": BattleSystem.ActionType.FLEE})
+	)
 	flee.disabled = not system.can_flee
 	_update_boost_label()
-	_say("Giliran %s. Boost: Q/E." % actor.display_name)
+	_focus_first(_commands)
+	_say("Giliran %s. Boost: Q/E atau L1/R1." % actor.display_name)
 
 
 func _on_attack() -> void:
@@ -158,6 +161,7 @@ func _on_skill_menu() -> void:
 		var b := _add_button(_submenu, text, _on_skill_chosen.bind(skill))
 		b.disabled = not system.can_use_skill(actor, skill)
 	_add_button(_submenu, "Batal", _show_commands)
+	_focus_first(_submenu)
 
 
 func _on_skill_chosen(skill: SkillData) -> void:
@@ -178,6 +182,7 @@ func _pick_target(skill: SkillData, action: Dictionary) -> void:
 			text += " [BREAK]"
 		_add_button(_submenu, text, _on_target_chosen.bind(t))
 	_add_button(_submenu, "Batal", _show_commands)
+	_focus_first(_submenu)
 
 
 func _on_target_chosen(target: Battler) -> void:
@@ -192,11 +197,14 @@ func _on_swap_menu() -> void:
 		var r := system.reserve[slot]
 		if r == null:
 			continue
-		var text := "%s <-> %s (HP %d/%d, BP %d)" % [
-			a.display_name if a != null else "-", r.display_name, r.hp, r.max_hp, r.bp]
+		var text := (
+			"%s <-> %s (HP %d/%d, BP %d)"
+			% [a.display_name if a != null else "-", r.display_name, r.hp, r.max_hp, r.bp]
+		)
 		var b := _add_button(_submenu, text, _on_swap_chosen.bind(slot))
 		b.disabled = not system.can_swap(slot)
 	_add_button(_submenu, "Batal", _show_commands)
+	_focus_first(_submenu)
 
 
 func _on_swap_chosen(slot: int) -> void:
@@ -221,12 +229,15 @@ func _update_boost_label() -> void:
 
 # --- signal dari logika -----------------------------------------------------
 
+
 func _connect_system() -> void:
 	system.round_started.connect(func(n: int) -> void: _say("Ronde %d" % n))
 	system.damaged.connect(_on_damaged)
 	system.healed.connect(_on_healed)
-	system.weakness_revealed.connect(func(t: Battler, type: int) -> void:
-		_say("Kelemahan %s: %s" % [t.display_name, BattleTypes.type_name(type)]))
+	system.weakness_revealed.connect(
+		func(t: Battler, type: int) -> void:
+			_say("Kelemahan %s: %s" % [t.display_name, BattleTypes.type_name(type)])
+	)
 	system.broke.connect(_on_broke)
 	system.recovered.connect(_on_recovered)
 	system.knocked_out.connect(_on_knocked_out)
@@ -317,9 +328,11 @@ func _on_battle_ended(result: BattleSystem.Result) -> void:
 		BattleSystem.Result.FLED:
 			_end_label.text = "KABUR"
 	_end_panel.show()
+	_end_button.grab_focus()
 
 
 # --- arena 3D ---------------------------------------------------------------
+
 
 func _build_arena() -> void:
 	var preset: TimeOfDayPreset = load(PRESET_PATHS[GameClock.get_phase()])
@@ -440,8 +453,11 @@ func _place_party_view(b: Battler, animate: bool) -> void:
 		alpha = 0.25
 	_set_view_alpha(view, alpha)
 	var body: MeshInstance3D = view.get_node("Body")
-	body.cast_shadow = (GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if b.is_reserve
-			else GeometryInstance3D.SHADOW_CASTING_SETTING_ON)
+	body.cast_shadow = (
+		GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if b.is_reserve
+		else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	)
 
 
 func _place_small_enemies(list: Array[Battler], has_boss: bool) -> void:
@@ -488,6 +504,7 @@ func _popup(target: Battler, text: String, color: Color) -> void:
 
 
 # --- HUD --------------------------------------------------------------------
+
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -537,9 +554,13 @@ func _build_hud() -> void:
 	_end_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_end_label.add_theme_font_size_override("font_size", 16)
 	end_box.add_child(_end_label)
-	_add_button(end_box, "Kembali", func() -> void: get_tree().change_scene_to_file(MAIN_SCENE))
+	_end_button = _add_button(end_box, "Kembali", _on_back)
 	_end_panel.hide()
 	_sub_panel.hide()
+
+
+func _on_back() -> void:
+	get_tree().change_scene_to_file(MAIN_SCENE)
 
 
 func _add_label(parent: Control, pos: Vector2) -> Label:
@@ -566,6 +587,15 @@ func _add_button(parent: Control, text: String, callback: Callable) -> Button:
 	return b
 
 
+## Fokus ke tombol pertama yang aktif supaya menu bisa dipakai dengan gamepad.
+func _focus_first(box: Control) -> void:
+	for c in box.get_children():
+		var b := c as Button
+		if b != null and not b.disabled and not b.is_queued_for_deletion():
+			b.grab_focus()
+			return
+
+
 func _clear(box: Control) -> void:
 	for c in box.get_children():
 		c.queue_free()
@@ -589,11 +619,18 @@ func _refresh() -> void:
 			_party_rows[i].text = "-"
 			continue
 		var marker := ">" if a == system.current else " "
-		_party_rows[i].text = "%s%-7s HP %4d/%-4d SP %3d  %s  %s" % [
-			marker, a.display_name, a.hp, a.max_hp, a.sp,
-			"#".repeat(a.bp) + "-".repeat(BattleSystem.MAX_BP - a.bp),
-			("R:" + r.display_name) if r != null else "",
-		]
+		_party_rows[i].text = (
+			"%s%-7s HP %4d/%-4d SP %3d  %s  %s"
+			% [
+				marker,
+				a.display_name,
+				a.hp,
+				a.max_hp,
+				a.sp,
+				"#".repeat(a.bp) + "-".repeat(BattleSystem.MAX_BP - a.bp),
+				("R:" + r.display_name) if r != null else "",
+			]
+		)
 	for b in _views:
 		_update_info(b)
 

@@ -4,8 +4,18 @@ class_name BattleTypes
 enum Type { PEDANG, TOMBAK, BELATI, KAPAK, BUSUR, TONGKAT, API, ES, PETIR, ANGIN, CAHAYA, GELAP }
 
 const NAMES: Array[String] = [
-	"Pedang", "Tombak", "Belati", "Kapak", "Busur", "Tongkat",
-	"Api", "Es", "Petir", "Angin", "Cahaya", "Gelap",
+	"Pedang",
+	"Tombak",
+	"Belati",
+	"Kapak",
+	"Busur",
+	"Tongkat",
+	"Api",
+	"Es",
+	"Petir",
+	"Angin",
+	"Cahaya",
+	"Gelap",
 ]
 ## Tanpa tipe (serangan musuh ke party).
 const NONE := -1

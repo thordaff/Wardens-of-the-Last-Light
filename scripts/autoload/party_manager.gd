@@ -7,7 +7,10 @@ extends Node
 ## memilih switch bebas, `swap_with_reserve()` sudah mendukung tukar lintas slot.
 
 signal roster_changed
-signal slot_swapped(slot: int, now_active: CharacterData, now_reserve: CharacterData)
+## `reserve_slot` = slot asal cadangan; sama dengan `active_slot` untuk swap_slot().
+signal slot_swapped(
+	active_slot: int, reserve_slot: int, now_active: CharacterData, now_reserve: CharacterData
+)
 
 const MAX_ROSTER := 8
 const ACTIVE_SLOTS := 4
@@ -97,7 +100,7 @@ func swap_slot(slot: int) -> bool:
 	var tmp := _active[slot]
 	_active[slot] = _reserve[slot]
 	_reserve[slot] = tmp
-	slot_swapped.emit(slot, _active[slot], _reserve[slot])
+	slot_swapped.emit(slot, slot, _active[slot], _reserve[slot])
 	roster_changed.emit()
 	return true
 
@@ -112,6 +115,6 @@ func swap_with_reserve(active_slot: int, reserve_slot: int) -> bool:
 	var tmp := _active[active_slot]
 	_active[active_slot] = _reserve[reserve_slot]
 	_reserve[reserve_slot] = tmp
-	slot_swapped.emit(active_slot, _active[active_slot], tmp)
+	slot_swapped.emit(active_slot, reserve_slot, _active[active_slot], tmp)
 	roster_changed.emit()
 	return true

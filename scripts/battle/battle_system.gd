@@ -239,6 +239,7 @@ func choose_enemy_action(actor: Battler) -> Dictionary:
 
 # --- internal ---------------------------------------------------------------
 
+
 func _make_party(data: CharacterData, slot: int, is_res: bool) -> Battler:
 	if data == null:
 		return null

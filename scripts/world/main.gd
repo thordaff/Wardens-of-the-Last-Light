@@ -15,11 +15,20 @@ const ENCOUNTERS: Array[String] = [
 func _process(_delta: float) -> void:
 	var h: float = GameClock.hour
 	var lines := PackedStringArray()
-	lines.append("%02d:%02d  %s%s" % [
-		int(h), int(fmod(h, 1.0) * 60.0),
-		GameClock.get_phase_name(),
-		"  (jam berhenti)" if GameClock.is_paused() else "",
-	])
+	(
+		lines
+		. append(
+			(
+				"%02d:%02d  %s%s"
+				% [
+					int(h),
+					int(fmod(h, 1.0) * 60.0),
+					GameClock.get_phase_name(),
+					"  (jam berhenti)" if GameClock.is_paused() else "",
+				]
+			)
+		)
+	)
 	lines.append("Party: %d/%d" % [PartyManager.member_count(), PartyManager.MAX_ROSTER])
 	lines.append("")
 	lines.append("Prototipe battle: tekan 1, 2, atau 3")

@@ -11,7 +11,7 @@ const GameClockScript := preload("res://scripts/autoload/game_clock.gd")
 var _failures := 0
 
 
-func _init() -> void:
+func _initialize() -> void:
 	_test_game_clock()
 	_test_party_manager()
 	_test_break()
@@ -32,8 +32,16 @@ func _check(cond: bool, msg: String) -> void:
 
 func _chars() -> Array[CharacterData]:
 	var out: Array[CharacterData] = []
-	for f in ["01_aldric", "02_seren", "03_kael", "04_mirela",
-			"05_torvan", "06_liora", "07_bram", "08_nyx"]:
+	for f in [
+		"01_aldric",
+		"02_seren",
+		"03_kael",
+		"04_mirela",
+		"05_torvan",
+		"06_liora",
+		"07_bram",
+		"08_nyx"
+	]:
 		out.append(load("res://data/characters/%s.tres" % f))
 	return out
 
@@ -145,9 +153,11 @@ func _test_swap_rules() -> void:
 
 func _test_full_battles() -> void:
 	print("Simulasi penuh")
-	for path in ["res://data/encounters/01_rute_serigala.tres",
-			"res://data/encounters/02_lima_musuh.tres",
-			"res://data/encounters/03_boss_ksatria.tres"]:
+	for path in [
+		"res://data/encounters/01_rute_serigala.tres",
+		"res://data/encounters/02_lima_musuh.tres",
+		"res://data/encounters/03_boss_ksatria.tres"
+	]:
 		for rng_seed in [1, 2, 3]:
 			var s := _new_system(path, rng_seed)
 			var turns := 0
@@ -158,9 +168,13 @@ func _test_full_battles() -> void:
 				else:
 					s.perform(_auto_party_action(s, actor))
 				turns += 1
-			_check(s.result != BattleSystem.Result.NONE,
-				"%s seed %d selesai (%s, %d giliran)" % [
-					path.get_file(), rng_seed, BattleSystem.Result.keys()[s.result], turns])
+			_check(
+				s.result != BattleSystem.Result.NONE,
+				(
+					"%s seed %d selesai (%s, %d giliran)"
+					% [path.get_file(), rng_seed, BattleSystem.Result.keys()[s.result], turns]
+				)
+			)
 
 
 ## Pemain bot: pakai kelemahan yang sudah diketahui, boost saat musuh break.
@@ -172,8 +186,15 @@ func _auto_party_action(s: BattleSystem, actor: Battler) -> Dictionary:
 			target = t
 	var boost := actor.bp - 1 if target.broken else 0
 	for skill in actor.skills():
-		if skill.effect == SkillData.Effect.DAMAGE and s.can_use_skill(actor, skill) \
-				and int(skill.type) in target.weaknesses:
-			return {"type": BattleSystem.ActionType.SKILL, "skill": skill,
-				"targets": [target], "boost": boost}
+		if (
+			skill.effect == SkillData.Effect.DAMAGE
+			and s.can_use_skill(actor, skill)
+			and int(skill.type) in target.weaknesses
+		):
+			return {
+				"type": BattleSystem.ActionType.SKILL,
+				"skill": skill,
+				"targets": [target],
+				"boost": boost
+			}
 	return {"type": BattleSystem.ActionType.ATTACK, "targets": [target], "boost": boost}

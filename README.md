@@ -17,7 +17,7 @@ Logika battle ada di `scripts/battle/battle_system.gd` dan tidak bergantung pada
 - 4 party aktif melawan sampai 5 musuh (atau 1 boss + 2).
 - Kelemahan: 6 senjata (Pedang, Tombak, Belati, Kapak, Busur, Tongkat) + 6 elemen (Api, Es, Petir, Angin, Cahaya, Gelap). Awalnya `?`, terbuka saat kena.
 - Shield turun 1 per hit kelemahan. Shield 0 = **BREAK**: musuh kehilangan giliran sampai 2 ronde berikutnya dan menerima damage ×2.
-- **Boost**: BP +1 per giliran (maks 5), pakai sampai 3 per aksi dengan **Q/E**. Serang biasa + boost = lebih banyak hit; skill + boost = lebih kuat.
+- **Boost**: BP +1 per giliran (maks 5), pakai sampai 3 per aksi dengan **Q/E** (gamepad L1/R1). Serang biasa + boost = lebih banyak hit; skill + boost = lebih kuat.
 - **Tukar**: tiap slot punya 1 cadangan. Switch tidak memakai giliran, maksimal sekali per slot per ronde. Anggota yang KO otomatis digantikan cadangannya.
 
 Semua angka ada di Resource `data/` (`characters/`, `skills/`, `enemies/`, `encounters/`) dan bisa diedit di Inspector.
@@ -26,8 +26,20 @@ Semua angka ada di Resource `data/` (`characters/`, `skills/`, `enemies/`, `enco
 
 ```
 godot --headless --import
+godot --headless -s res://tests/smoke_test.gd
 godot --headless -s res://tests/test_battle.gd
 ```
+
+CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedua tes, dan scene utama + battle secara headless di setiap PR.
+
+## Kontrol
+
+| Aksi | Keyboard | Gamepad |
+|---|---|---|
+| Gerak / pilih menu | WASD / panah | Stik kiri / D-pad |
+| Konfirmasi | Enter / Spasi | A |
+| Batal | Esc | B |
+| Boost + / − | E / Q | R1 / L1 |
 
 ## Struktur folder
 
