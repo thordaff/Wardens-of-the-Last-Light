@@ -11,9 +11,9 @@ extends Camera3D
 @export var follow_speed: float = 5.0
 ## Titik fokus sedikit di atas kaki pemain.
 @export var focus_height: float = 0.8
-## Blur jauh mulai sekian meter di belakang pemain, blur dekat sekian meter di depannya.
-@export var far_blur_margin: float = 3.0
-@export var near_blur_margin: float = 4.0
+## Jarak dari kamera (m). Art-direction §5: far blur mulai ±12 m, near blur s/d ±3 m.
+@export var near_blur_distance: float = 3.0
+@export var far_blur_distance: float = 12.0
 
 
 func _ready() -> void:
@@ -42,9 +42,9 @@ func _setup_dof() -> void:
 		attrs = CameraAttributesPractical.new()
 		attributes = attrs
 	attrs.dof_blur_far_enabled = true
-	attrs.dof_blur_far_distance = distance + far_blur_margin
+	attrs.dof_blur_far_distance = far_blur_distance
 	attrs.dof_blur_far_transition = 6.0
 	attrs.dof_blur_near_enabled = true
-	attrs.dof_blur_near_distance = maxf(0.5, distance - near_blur_margin)
+	attrs.dof_blur_near_distance = near_blur_distance
 	attrs.dof_blur_near_transition = 2.0
 	attrs.dof_blur_amount = 0.08

@@ -37,6 +37,7 @@ Semua angka ada di Resource `data/` (`characters/`, `skills/`, `enemies/`, `enco
 godot --headless --import
 godot --headless -s res://tests/smoke_test.gd
 godot --headless -s res://tests/test_battle.gd
+godot --headless -s res://tests/test_town.gd
 ```
 
 CI (`.github/workflows/godot-ci.yml`) menjalankan gdlint, gdformat, import, kedua tes, dan scene utama + battle secara headless di setiap PR.

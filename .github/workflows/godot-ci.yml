@@ -19,10 +19,13 @@ jobs:
           unzip -q godot.zip && mv Godot_v4.5-stable_linux.x86_64 godot
       - name: Import project
         run: ./godot --headless --import 2>&1 | tee import.log; ! grep -E "SCRIPT ERROR|Parse Error|ERROR:" import.log
+      - name: Cek file .import sama dengan hasil Godot
+        run: git diff --exit-code -- '*.import'
       - name: Tes
         run: |
           ./godot --headless -s res://tests/smoke_test.gd
           ./godot --headless -s res://tests/test_battle.gd
+          ./godot --headless -s res://tests/test_town.gd
       - name: Jalankan main scene 120 frame
         run: ./godot --headless --quit-after 120 2>&1 | tee run.log; ! grep -E "SCRIPT ERROR|ERROR:" run.log
       - name: Jalankan scene battle 300 frame

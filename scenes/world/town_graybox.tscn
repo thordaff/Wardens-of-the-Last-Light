@@ -82,7 +82,7 @@ light_color = Color(1, 0.79, 0.54, 1)
 light_energy = 0.9
 shadow_enabled = true
 
-[node name="TimeOfDay" type="Node" parent="."]
+[node name="TimeOfDay" type="Node" parent="." node_paths=PackedStringArray("sun", "world_environment")]
 script = ExtResource("2_tod")
 sun = NodePath("../Sun")
 world_environment = NodePath("../WorldEnvironment")
@@ -483,7 +483,7 @@ shape = SubResource("Box_wall_z")
 [node name="Player" parent="." instance=ExtResource("6_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, -0, 1, 0, 0, 5)
 
-[node name="FieldCamera" type="Camera3D" parent="."]
+[node name="FieldCamera" type="Camera3D" parent="." node_paths=PackedStringArray("target")]
 transform = Transform3D(1, 0, 0, 0, 0.882948, -0.469472, 0, 0.469472, 0.882948, 0, 6, 15)
 script = ExtResource("4_camera")
 target = NodePath("../Player")
